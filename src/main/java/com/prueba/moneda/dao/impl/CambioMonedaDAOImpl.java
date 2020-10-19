@@ -31,14 +31,34 @@ public class CambioMonedaDAOImpl implements ICambioMonedaDAO{
 	public CambioMoneda listarCambioMoneda(ListarCambioMonedaDTO dto) {
 		String sql = "SELECT * FROM TIPOCAMBIO WHERE id = "+dto.getId();
 		List<CambioMoneda> cambioMoneda = template.query(sql, new BeanPropertyRowMapper<CambioMoneda>(CambioMoneda.class));
-		return (CambioMoneda) cambioMoneda.get(0);
+		if(cambioMoneda.size() < 1) {
+			CambioMoneda cambio = new CambioMoneda();
+			cambio.setId(0);
+			cambio.setMonedaDestino("ERROR");
+			cambio.setMonedaOrigen("ERROR");
+			cambio.setTipoCambio(null);
+			return cambio;
+					
+		} else {
+			return (CambioMoneda) cambioMoneda.get(0);	
+		}
 	}
 
 	@Override
 	public CambioMoneda listarCambioMonedaByName(String name) {
 		String sql = "SELECT * FROM TIPOCAMBIO WHERE moneda_destino LIKE '%"+name+"%'";
 		List<CambioMoneda> cambioMoneda = template.query(sql, new BeanPropertyRowMapper<CambioMoneda>(CambioMoneda.class));
-		return (CambioMoneda) cambioMoneda.get(0);
+		if(cambioMoneda.size() < 1) {
+			CambioMoneda cambio = new CambioMoneda();
+			cambio.setId(0);
+			cambio.setMonedaDestino("NO ENCONTRADO");
+			cambio.setMonedaOrigen("ERROR");
+			cambio.setTipoCambio(null);
+			return cambio;
+					
+		} else {
+			return (CambioMoneda) cambioMoneda.get(0);	
+		}
 	}
 
 	@Override
@@ -51,9 +71,15 @@ public class CambioMonedaDAOImpl implements ICambioMonedaDAO{
 	public CambioMonedaDTOResponse tipoCambio(CambioMonedaDTORequest cambioMoneda) {
 		CambioMonedaDTOResponse response = new CambioMonedaDTOResponse();
 		CambioMoneda cambMoneda = listarCambioMonedaByName(cambioMoneda.getMonedaDestino());
-		Double tipoCambio = cambMoneda.getTipoCambio();
-		Double monto = cambioMoneda.getMonto();
-		Double montoTipoCambio = monto * tipoCambio;
+		Double tipoCambio = 0.0;
+		Double monto = 0.0;
+		Double montoTipoCambio = 0.0;
+		
+		if (cambMoneda.getId() != 0) {
+			tipoCambio = cambMoneda.getTipoCambio();
+			monto = cambioMoneda.getMonto();
+			montoTipoCambio = monto * tipoCambio;
+		} 
 		
 		response.setMonedaDestino(cambioMoneda.getMonedaDestino());
 		response.setMonedaOrigen(cambioMoneda.getMonedaOrigen());
